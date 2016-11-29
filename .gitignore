@@ -1,0 +1,7 @@
+.ipynb_checkpoints
+.idea/*
+.RData/*
+.Rhistory
+*~
+*.pyc
+__pycache__
