@@ -15,11 +15,31 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
 		TimeStampDiffs = [x[0]-x[1] for x in zip(TimeStamps[1:],TimeStamps[:-1])]
 		DurationOfVideoActivity = TimeStamps[-1] - TimeStamps[0]
 		AverageVideoTimeDiffs = sum(TimeStampDiffs)/max(1,len(TimeStampDiffs))
-		
+
+		EventsTypes = VideoEvents['EventType']
+		# [NEW] ADDED NEW FEATURE: NUMBER OF PAUSES
+
+		NumberOfPauses = EventsTypes.count('Video.Pause')
+
+		# [NEW] ADDED NEW FEATURE: NUMBER OF PLAYS
+		NumberOfPlays = EventsTypes.count('Video.Play')
+
+		# [NEW] ADDED NEW FEATURE: NUMBER OF DOWNLOADS
+		NumberOfDownloads = EventsTypes.count('Video.Download')
+
+		SeenVideo = 0
+		if NumberOfPlays > 0 or NumberOfDownloads > 0:
+			SeenVideo = 1
+
+		# [NEW] ADDED NEW FEATURE: COUNT DISTINCT VIDEO IDS
+
+
 		# Append features to dictionary
 		Features.update({
 			'DurationOfVideoActivity' : DurationOfVideoActivity,
-			'AverageVideoTimeDiffs' : AverageVideoTimeDiffs
+			'AverageVideoTimeDiffs' : AverageVideoTimeDiffs,
+			'NumberOfPauses': NumberOfPauses,
+			'SeenVideo':SeenVideo
 		})
 
 	# Features for forum events
