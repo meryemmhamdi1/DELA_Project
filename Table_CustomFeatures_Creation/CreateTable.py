@@ -246,13 +246,13 @@ def ExportAsCSV(DataSet):
     print '(this is a sample of the output table)\n'
 
     # Save table into CSV file
-    with open("OutputTable2.csv", "w") as f:
+    with open("OutputTableTrain.csv", "w") as f:
         f.write(','.join(ColumnNames) + '\n')
         writer = csv.writer(f)
         writer.writerows(Table)
 
     # Print success message
-    print colored('Success! Table with %d rows saved to file: ./OutputTable.csv\n' % len(Table), 'green')
+    print colored('Success! Table with %d rows saved to file: ./OutputTableTrain.csv\n' % len(Table), 'green')
 
 
 # END OF FUNCTION
