@@ -26,25 +26,68 @@ indexes_y_test <- createDataPartition(y = 1:length(y), times = 1, p = 0.3)[[1]]
 weights <- as.numeric(y[-indexes_y_test])
 for(val in unique(weights)) {weights[weights==val]=1/sum(weights==val)*length(weights)/2} # normalized to sum to length(samples)
 
-model <- train(method = 'svmLinear', 
-               x = x[-indexes_y_test,], 
-               y = y[-indexes_y_test], 
-               #weights = weights,
-               maximize = T,
-               tuneGrid = expand.grid(.C=3^(-15:15)),   
-               preProcess = c('center', 'scale'),
-               trControl = trainControl(method = 'cv', # cross validation
-                                        number = 10,   # nr of cv sets
-                                        #                                     repeats = 5, # use with method=repeatcv
-                                        returnResamp = 'none', # return accuracy per cv partition and parameter setting
-                                        classProbs = T, # return prediction probabilities along with predicted classes
-                                        #                                     savePredictions=T, # returns all predictions (for all cv paritions) for each tuneGrid parameter set 
-                                        returnData = F, # disable return of training data e.g. for big data sets
-                                        allowParallel = T
-               )
-)
-# we see some accuracy around 0.7-0.8
-model
+
+
+
+
+
+db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTable2.csv', stringsAsFactors = F)
+
+#------ sort submissions
+db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
+
+#--- replace NA values with 0
+db[is.na(db)]=0
+
+#----- remove first submissions
+db= filter(db,SubmissionNumber>0)
+
+#---- remove cases when there is no video or forum activity between two submissions
+db$NVideoAndForum= db$NVideoEvents+db$NForumEvents
+db= filter(db,NVideoAndForum>0)  
+
+#----- make a catgorical vribale, indicating if grade improved
+db$improved = factor(ifelse(db$GradeDiff>0 ,'Yes', 'No' ))
+table(db$improved)
+
+# ----- (Optional) split your training data into train and test set. Use train set to build your classifier and try it on test data to check generalizability. 
+set.seed(1234)
+tr.index= sample(nrow(db), nrow(db)*0.9)
+db.train= db[tr.index,]
+db.test = db[-tr.index,]
+dim(db.train)
+dim(db.test)
+
+#----- train classifier to predict 'improved' status 
+#----- Try different methods, model parameters, feature sets and find the best classifier 
+#----- Use AUC as model evaluation metric
+library(caret)
+ctrl_svm = trainControl(method='repeatedcv', repeats=10, number=10, returnResamp = 'none', returnData= FALSE, allowParallel=TRUE, classProbs=TRUE)
+model_svm =train(x=db.train[,fs],
+                 y=db.train$improved,
+                 method = "svmLinear",
+                 trControl = ctrl_svm,
+                 metric="ROC",
+                 tuneGrid = expand.grid(.C=3^(-15:15)),   
+                 preProcess = c('center', 'scale'))
+print(model_svm);   
+plot(model_svm)  
+
+preds_train_svm = predict(model_svm, newdata=db.train);
+
+ROC_curve_train_svm = roc(preds_train_svm, db.train$improved);
+auc(ROC_curve_train_svm)
+
+
+
+
+
+#----- check generalizability of your model on new data
+preds_test_svm = predict(model_svm, newdata=db.test);
+table(preds_svm)
+ROC_curve_test_svm= roc(preds_test_svm, db.test$improved);  
+auc(ROC_curve_test_svm)
+
 head(with(model, results[order(results$Kappa, decreasing=T),]))
 # confusion matrix: model predicting classes of test data
 table(predict.train(object = model, newdata = x[indexes_y_test,], type='raw'), y[indexes_y_test])

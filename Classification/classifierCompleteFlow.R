@@ -5,7 +5,7 @@ library(dplyr)
 #======================================================================== 
 
   #------ read features extracted from train set, using your python script
-  db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTable2.csv', stringsAsFactors = F)
+  db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTable2.csv', stringsAsFactors = F)
   
   #------ sort submissions
   db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
