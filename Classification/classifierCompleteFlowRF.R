@@ -8,7 +8,7 @@ library(caret)
 #======================================================================== 
 
   #------ read features extracted from train set, using your python script
-  db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
+  db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
   
   #------ sort submissions
   db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
@@ -26,7 +26,7 @@ library(caret)
   db= filter(db,NVideoAndForum>0)  
   
   #----- make a categorical variable, indicating if grade improved
-  db$improved = factor(ifelse(db$GradeDiff>0 ,'Yes', 'No' ))
+  db$improved = factor(ifelse(db$GradeDiff>0 ,"Yes", "No" ))
   table(db$improved)
   
   # ----- (Optional) split your training data into train and test set. Use train set to build your classifier and try it on test data to check generalizability. 
@@ -36,6 +36,19 @@ library(caret)
   db.test = db[-tr.index,]
   dim(db.train)
   dim(db.test)
+  
+  #======================================================================== 
+  #         Print correlation
+  #========================================================================   
+  
+  #correlationMatrix <- cor(db.train[,5:28])
+  # summarize the correlation matrix
+  #print(correlationMatrix)
+  # find attributes that are highly corrected (ideally >0.75)
+  #highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.5)
+  # print indexes of highly correlated attributes
+  #print(highlyCorrelated)
+  
   
   #----- train classifier to predict 'improved' status 
   #----- Try different methods, model parameters, feature sets and find the best classifier 
@@ -65,11 +78,11 @@ library(caret)
   
   paramGrid_rf <- expand.grid(.mtry = c(5,6,7,8,9) ,.ntree = c(10,20,30,40,50,60,70))
 
-  fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs')
-  important_fs = c('AverageVideoTimeDiffs','DurationOfVideoActivity','NVideoEvents','SeenVideo','NumberOfPlays','NumberOfPauses','NumberOfComments','NumberOfDownloads','NumberOfPosts')
+  fs=c(1,2,3,4,5,8:28)
+  important_fs = c('NVideoEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','DurationOfVideoActivity','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
   ctrl_rf= trainControl(method = 'cv', summaryFunction=twoClassSummary ,classProbs = TRUE)
   # -- Random Forest Model
-  model_rf =train(x=db.train[,important_fs],
+  model_rf =train(x=db.train[,fs],
                y=db.train$improved,
                method = customRF,
                metric="ROC",
@@ -99,27 +112,32 @@ library(caret)
 #======================================================================== 
   
 #  Importance
-#---  AverageVideoTimeDiffs     100.0000
-#---  DurationOfVideoActivity    98.8803
-#---  NVideoEvents               98.1915
-#---  SeenVideo                  95.0247
-#---  NumberOfPlays              87.1058
-#---  NumberOfPauses             78.0625
-#---  NumberOfComments           69.2735
-#---  NumberOfDownloads          69.1281
-#---  NumberOfPosts              63.7541
-#---  NForumEvents                4.9675
-#---  ScoreRelevantEvents         2.5083
-#---  NumberOfThreadViews         0.1887
-#---  TimeSinceLast               0.0000
+#  AverageVideoTimeDiffs     100.0000
+#  DurationOfVideoActivity    98.9172
+#  NVideoEvents               98.2282
+#  DistinctIds                97.4502
+#  SeenVideo                  95.0602
+#  PlaysDownlsPerVideo        93.5078
+#  NumberOfThreadsLaunched    88.8814
+#  NumberOfPlays              87.1383
+#  NumberOfPauses             78.0916
+#  NumberOfComments           69.2994
+#  NumberOfDownloads          69.1539
+#  ComAndPost                 63.9989
+#  NumberOfPosts              63.7779
+#  NForumEvents                4.9693
+#  ScoreRelevantEvents         2.5093
+#  NumberOfThreadViews         0.1888
+#  TimeSinceLast               0.0000
   
   
 varImp(model_rf)
+
 #======================================================================== 
 #         step 2.1: Use classifier to predict progress for test data
 #======================================================================== 
   
-  testDb=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
+  testDb=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
   testDb$Grade=NULL; testDb$GradeDiff=NULL;
   testDb[is.na(testDb)]=0
   
@@ -139,9 +157,9 @@ varImp(model_rf)
   
   #----- keep only rows which are listed in classifier_templtae.csv file
   #----- this excludes first submissions and cases with no forum and video event in between two submissions
-  classifier_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
+  classifier_template= read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
   kaggleSubmission=merge(classifier_template,cl.Results )
-  write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_results_rf.csv', row.names = F)
+  write.csv(kaggleSubmission,file='/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_results_rf.csv', row.names = F)
   
   
   #------- submit the resulting file (classifier_results.csv) to kaggle 

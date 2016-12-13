@@ -3,7 +3,7 @@ library(plyr) #ddply
 library(caret)
 
 #------ read features
-setwd('/media/diskD/EPFL/Fall 2016/DELA/Project')
+setwd('//home/nevena/Desktop/Digital education/DELA_Project/Table_CustomFeatures_Creation')
 db=read.csv('OutputTable.csv', stringsAsFactors = F)
 
 #------ sort submissions

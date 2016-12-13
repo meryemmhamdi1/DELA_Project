@@ -9,7 +9,7 @@ library(nnet)
 #======================================================================== 
 
 #------ read features extracted from train set, using your python script
-db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
+db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
 
 #------ sort submissions
 db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
@@ -25,7 +25,7 @@ db$NVideoAndForum= db$NVideoEvents+db$NForumEvents
 db= filter(db,NVideoAndForum>0)  
 
 #----- make a catgorical vribale, indicating if grade improved
-db$improved = factor(ifelse(db$GradeDiff>0 ,'Yes', 'No' ))
+db$improved = factor(ifelse(db$GradeDiff>0 ,1, 0 ))
 table(db$improved)
 
 # ----- (Optional) split your training data into train and test set. Use train set to build your classifier and try it on test data to check generalizability. 
@@ -50,8 +50,7 @@ dim(db.test)
 # 'NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews'
 # 'DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs'
 
-
-fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs')
+fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
 
 idC <-class.ind(db.train$improved)
 nn_model = nnet(db.train[,fs],idC, size=10, maxit = 200, softmax=TRUE)
@@ -77,7 +76,7 @@ table(preds_test_nn,db.test$improved)
 #         step 2.1: Use classifier to predict progress for test data
 #======================================================================== 
 
-testDb=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
+testDb=read.csv('home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
 testDb$Grade=NULL; testDb$GradeDiff=NULL;
 testDb[is.na(testDb)]=0
 
@@ -97,9 +96,9 @@ table(cl.Results$improved)
 
 #----- keep only rows which are listed in classifier_templtae.csv file
 #----- this excludes first submissions and cases with no forum and video event in between two submissions
-classifier_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
+classifier_template= read.csv('home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
 kaggleSubmission=merge(classifier_template,cl.Results )
-write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_results.csv', row.names = F)
+write.csv(kaggleSubmission,file='home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_results.csv', row.names = F)
 
 
 #------- submit the resulting file (classifier_results.csv) to kaggle 

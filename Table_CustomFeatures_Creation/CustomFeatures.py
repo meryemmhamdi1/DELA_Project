@@ -26,6 +26,12 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
         # [NEW] ADDED NEW FEATURE: NUMBER OF DOWNLOADS
         NumberOfDownloads = EventsTypes.count('Video.Download')
 
+        # [NEW] ADDED NEW FEATURE: NUMBER OF LOADS
+        NumberOfLoads= EventsTypes.count('Video.Load')
+
+        # [NEW] ADDED NEW FEATURE: NUMBER OF SPEED CHANGES
+        NumberOfSpeedChange= EventsTypes.count('Video.SpeedChange')
+
         # [NEW] ADDED NEW FEATURE: WATCHED (SEEN OR DOWNLOADED) AT LEAST ONE VIDEO
         SeenVideo = 0
         if NumberOfPlays > 0 or NumberOfDownloads > 0:
@@ -34,8 +40,11 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
         # [NEW] ADDED NEW FEATURE: NUMBER OF DISTINCT VIDEO IDS
         DistinctIds=len(set(VideoEvents['VideoID']))
         
-          # [NEW] ADDED NEW FEATURE: PLAYS AND DOWNLOADS PER VIDEO
+        # [NEW] ADDED NEW FEATURE: PLAYS AND DOWNLOADS PER VIDEO
         PlaysDownlsPerVideo=(NumberOfPlays+NumberOfDownloads)/DistinctIds
+
+        # [NEW] ADDED NEW FEATURE: PLAYS AND DOWNLOADS PER VIDEO
+        SelectiveNumOfEvents=NumberOfPlays+NumberOfPauses+NumberOfLoads+NumberOfSpeedChange
 
         # Append features to dictionary
         Features.update({
@@ -46,7 +55,10 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
             'NumberOfPauses': NumberOfPauses,
             'SeenVideo': SeenVideo,
             'DistinctIds': DistinctIds,
-            'PlaysDownlsPerVideo':PlaysDownlsPerVideo
+            'PlaysDownlsPerVideo':PlaysDownlsPerVideo,
+            'NumberOfLoads':NumberOfLoads,
+            'NumberOfSpeedChange': NumberOfSpeedChange,
+            'SelectiveNumOfEvents': SelectiveNumOfEvents
         })
 
     # Features for forum events
@@ -66,12 +78,20 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
         # [NEW] ADDED NEW FEATURE: WEIGHTED SUM OF RELEVANT POST-TYPES
         ScoreRelevantEvents = 2 * NumberOfComments + 1.5 * NumberOfPosts + 1 * NumberOfThreadViews
 
+        #[NEW] ADDED NEW FEATURE: COUNT ONLY POSTS AND COMMENTS
+        ComAndPost=NumberOfComments+NumberOfPosts
+        
+        #[NEW] ADDED NEW FEATURE: COUNT ONLY POSTS AND COMMENTS
+        NumberOfThreadsLaunched = EventTypes.count('Forum.Thread.Launch')
+        
         # Append features to dictionary
         Features.update({
             'NumberOfThreadViews': NumberOfThreadViews,
             'NumberOfComments': NumberOfComments,
             'NumberOfPosts': NumberOfPosts,
-            'ScoreRelevantEvents': ScoreRelevantEvents
+            'ScoreRelevantEvents': ScoreRelevantEvents,
+            'ComAndPost':ComAndPost,
+            'NumberOfThreadsLaunched':NumberOfThreadsLaunched
         })
 
     return Features
