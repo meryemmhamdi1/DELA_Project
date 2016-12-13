@@ -78,7 +78,27 @@ library(caret)
   
   paramGrid_rf <- expand.grid(.mtry = c(5,6,7,8,9) ,.ntree = c(10,20,30,40,50,60,70))
 
-  fs=c(1,2,3,4,5,8:28)
+  fs=c('SubmissionNumber',
+       'NVideoEvents',
+       'NForumEvents',
+       'NumberOfPosts',
+       'NumberOfComments',
+       'ScoreRelevantEvents',
+       'SeenVideo',
+       'NumberOfDownloads',
+       'NumberOfPauses',
+       'DurationOfVideoActivity',
+       'AverageVideoTimeDiffs',
+       'DistinctIds',
+       'PlaysDownlsPerVideo',
+       'ComAndPost',
+       'NumberOfThreadsLaunched',
+       'NumberOfLoads',
+       'NumberOfPlays',
+       'NVideoAndForum',
+       'SelectiveNumOfEvents',
+       'NumberOfThreadViews',
+       'NumberOfSpeedChange')
   important_fs = c('NVideoEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','DurationOfVideoActivity','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
   ctrl_rf= trainControl(method = 'cv', summaryFunction=twoClassSummary ,classProbs = TRUE)
   # -- Random Forest Model
