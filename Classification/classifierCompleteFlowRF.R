@@ -95,7 +95,7 @@ library(caret)
        'NumberOfThreadsLaunched',
        'NumberOfLoads',
        'NumberOfPlays',
-       'NVideoAndForum',
+       'NVideoAndForum_',
        'SelectiveNumOfEvents',
        'NumberOfThreadViews',
        'NumberOfSpeedChange')

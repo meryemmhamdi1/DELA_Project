@@ -1,10 +1,10 @@
 # ----------------------------------------#
 # Function that computes custom features #
 # ----------------------------------------#
-def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
+def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
     # Initialize features dict
     Features = {}
-
+   # NVideoAndForum_=len(VideoEvents)+len(ForumEvents)
     # Features for video events
     if len(VideoEvents) > 0:
 
@@ -58,7 +58,8 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[]):
             'PlaysDownlsPerVideo':PlaysDownlsPerVideo,
             'NumberOfLoads':NumberOfLoads,
             'NumberOfSpeedChange': NumberOfSpeedChange,
-            'SelectiveNumOfEvents': SelectiveNumOfEvents
+            'SelectiveNumOfEvents': SelectiveNumOfEvents,
+            'NVideoAndForum_':NVideoAndForum_
         })
 
     # Features for forum events

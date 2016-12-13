@@ -28,7 +28,7 @@ def indent(text, prefix, predicate=None):
 # --------------------------------------#
 # Function that pretty-prints data set #
 # --------------------------------------#
-def PrintDataSet(DataSet):
+'''def PrintDataSet(DataSet):
     # Initialize effective row counter (rows that have custom features)
     EffectiveRowCounter = 0
 
@@ -124,7 +124,7 @@ def PrintDataSet(DataSet):
 
     # Print end of dataset notice, and number of effective rows
     print '\nEnd of data set. Number of rows with custom features is %d.\n' % EffectiveRowCounter
-
+'''
 
 # END OF FUNCTION
 
@@ -147,20 +147,20 @@ def AppendFeatures(DataSet):
                     # Get number of video and forum events
                     NVideoEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NVideoEvents']
                     NForumEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NForumEvents']
-
+                    NVideoAndForum = NForumEvents+NVideoEvents
                     # Calculate features for video events
                     if NVideoEvents > 0 and NForumEvents == 0:
                         Features = CalculateFeatures(
-                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'])
+                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],ForumEvents=[],NVideoAndForum_=NVideoEvents)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents == 0 and NForumEvents > 0:
-                        Features = CalculateFeatures(
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'])
+                        Features = CalculateFeatures(VideoEvents=[],
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NForumEvents)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents > 0 and NForumEvents > 0:
                         Features = CalculateFeatures(
                             VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'])
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NVideoAndForum)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
 
     return DataSet
@@ -173,7 +173,7 @@ def AppendFeatures(DataSet):
 # ------------------------------------------------------#
 def ExportAsCSV(DataSet):
     # Print title
-    print '\nOutput Table (with custom features):\n'
+    print ('\nOutput Table (with custom features):\n')
 
     # Determine number of custom features and get their names
     FeatureNamesSet = set()
@@ -242,8 +242,8 @@ def ExportAsCSV(DataSet):
     ColumnNames += ListOfFeatureNames
 
     # Print sample of output table
-    print tabulate(Table[0:160], headers=ColumnNames, tablefmt="fancy_grid")
-    print '(this is a sample of the output table)\n'
+    print (tabulate(Table[0:160], headers=ColumnNames, tablefmt="fancy_grid"))
+    print ('(this is a sample of the output table)\n')
 
     # Save table into CSV file
     with open("OutputTableTest.csv", "w") as f:
@@ -252,7 +252,7 @@ def ExportAsCSV(DataSet):
         writer.writerows(Table)
 
     # Print success message
-    print colored('Success! Table with %d rows saved to file: ./OutputTableTest.csv\n' % len(Table), 'green')
+    print (colored('Success! Table with %d rows saved to file: ./OutputTableTest.csv\n' % len(Table), 'green'))
 
 
 # END OF FUNCTION

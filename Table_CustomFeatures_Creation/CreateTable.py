@@ -147,20 +147,20 @@ def AppendFeatures(DataSet):
                     # Get number of video and forum events
                     NVideoEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NVideoEvents']
                     NForumEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NForumEvents']
-
+                    NVideoAndForum = NForumEvents+NVideoEvents
                     # Calculate features for video events
                     if NVideoEvents > 0 and NForumEvents == 0:
                         Features = CalculateFeatures(
-                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'])
+                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],ForumEvents=[],NVideoAndForum_=NVideoEvents)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents == 0 and NForumEvents > 0:
-                        Features = CalculateFeatures(
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'])
+                        Features = CalculateFeatures(VideoEvents=[],
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NForumEvents)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents > 0 and NForumEvents > 0:
                         Features = CalculateFeatures(
                             VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'])
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NVideoAndForum)
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
 
     return DataSet

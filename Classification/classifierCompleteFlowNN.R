@@ -51,7 +51,27 @@ dim(db.test)
 # 'DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs'
 
 #fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
-fs=c(1,2,3,4,5)
+fs=c('SubmissionNumber',
+     'NVideoEvents',
+     'NForumEvents',
+     'NumberOfPosts',
+     'NumberOfComments',
+     'ScoreRelevantEvents',
+     'SeenVideo',
+     'NumberOfDownloads',
+     'NumberOfPauses',
+     'DurationOfVideoActivity',
+     'AverageVideoTimeDiffs',
+     'DistinctIds',
+     'PlaysDownlsPerVideo',
+     'ComAndPost',
+     'NumberOfThreadsLaunched',
+     'NumberOfLoads',
+     'NumberOfPlays',
+     'NVideoAndForum',
+     'SelectiveNumOfEvents',
+     'NumberOfThreadViews',
+     'NumberOfSpeedChange')
 idC <-class.ind(db.train$improved)
 nn_model = nnet(db.train[,fs],idC, size=10, maxit = 200, softmax=TRUE)
 
