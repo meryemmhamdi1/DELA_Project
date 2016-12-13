@@ -6,6 +6,8 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
     Features = {}
    # NVideoAndForum_=len(VideoEvents)+len(ForumEvents)
     # Features for video events
+
+    TotalVideoEvents = 0
     if len(VideoEvents) > 0:
 
         # Calculate custom features
@@ -32,6 +34,8 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
         # [NEW] ADDED NEW FEATURE: NUMBER OF SPEED CHANGES
         NumberOfSpeedChange= EventsTypes.count('Video.SpeedChange')
 
+        TotalVideoEvents = NumberOfPauses + NumberOfPlays + NumberOfDownloads + NumberOfLoads + NumberOfSpeedChange
+
         # [NEW] ADDED NEW FEATURE: WATCHED (SEEN OR DOWNLOADED) AT LEAST ONE VIDEO
         SeenVideo = 0
         if NumberOfPlays > 0 or NumberOfDownloads > 0:
@@ -46,6 +50,8 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
         # [NEW] ADDED NEW FEATURE: PLAYS AND DOWNLOADS PER VIDEO
         SelectiveNumOfEvents=NumberOfPlays+NumberOfPauses+NumberOfLoads+NumberOfSpeedChange
 
+
+
         # Append features to dictionary
         Features.update({
             'DurationOfVideoActivity': DurationOfVideoActivity,
@@ -55,11 +61,12 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
             'NumberOfPauses': NumberOfPauses,
             'SeenVideo': SeenVideo,
             'DistinctIds': DistinctIds,
-            'PlaysDownlsPerVideo':PlaysDownlsPerVideo,
-            'NumberOfLoads':NumberOfLoads,
+            'PlaysDownlsPerVideo': PlaysDownlsPerVideo,
+            'NumberOfLoads': NumberOfLoads,
             'NumberOfSpeedChange': NumberOfSpeedChange,
             'SelectiveNumOfEvents': SelectiveNumOfEvents,
-            'NVideoAndForum_':NVideoAndForum_
+            'NVideoAndForum_': NVideoAndForum_,
+            'TotalVideoEvents': TotalVideoEvents
         })
 
     # Features for forum events
@@ -84,7 +91,11 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
         
         #[NEW] ADDED NEW FEATURE: COUNT ONLY POSTS AND COMMENTS
         NumberOfThreadsLaunched = EventTypes.count('Forum.Thread.Launch')
-        
+
+        TotalForumEvents = NumberOfThreadsLaunched + NumberOfPosts
+
+        EngagementIndex = TotalVideoEvents * TotalForumEvents
+
         # Append features to dictionary
         Features.update({
             'NumberOfThreadViews': NumberOfThreadViews,
@@ -92,7 +103,9 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
             'NumberOfPosts': NumberOfPosts,
             'ScoreRelevantEvents': ScoreRelevantEvents,
             'ComAndPost':ComAndPost,
-            'NumberOfThreadsLaunched':NumberOfThreadsLaunched
+            'NumberOfThreadsLaunched': NumberOfThreadsLaunched,
+            'TotalForumEvents': TotalForumEvents,
+            'EngagementIndex': EngagementIndex
         })
 
     return Features

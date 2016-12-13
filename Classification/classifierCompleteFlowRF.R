@@ -2,13 +2,14 @@ library(plyr) #ddply
 library(dplyr)
 library(AUC) #install.packages('AUC')
 library(caret)
+library(class)
 
 #======================================================================== 
 #         step 1.1: train classifier
 #======================================================================== 
 
   #------ read features extracted from train set, using your python script
-  db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
+  db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
   
   #------ sort submissions
   db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
@@ -28,14 +29,21 @@ library(caret)
   #----- make a categorical variable, indicating if grade improved
   db$improved = factor(ifelse(db$GradeDiff>0 ,"Yes", "No" ))
   table(db$improved)
-  
+  set.seed(9560)
+  up_train <- upSample(x=db,
+                       y= db$improved)
+  up_train$improved = up_train$Class
   # ----- (Optional) split your training data into train and test set. Use train set to build your classifier and try it on test data to check generalizability. 
   set.seed(1234)
-  tr.index= sample(nrow(db), nrow(db)*0.9)
-  db.train= db[tr.index,]
-  db.test = db[-tr.index,]
+  tr.index= sample(nrow(up_train), nrow(up_train)*0.9)
+  db.train= up_train[tr.index,]
+  db.test = up_train[-tr.index,]
   dim(db.train)
   dim(db.test)
+  
+  
+  
+
   
   #======================================================================== 
   #         Print correlation
@@ -76,14 +84,14 @@ library(caret)
   customRF$sort <- function(x) x[order(x[,1]),]
   customRF$levels <- function(x) x$classes
   
-  paramGrid_rf <- expand.grid(.mtry = c(5,6,7,8,9) ,.ntree = c(10,20,30,40,50,60,70))
+  paramGrid_rf <- expand.grid(.mtry = c(5,6) ,.ntree = c(10,30))
 
+  # removed features: 'NForumEvents', 'ScoreRelevantEvents', 'NumberOfThreadViews', 'TimeSinceLast'
+  
   fs=c('SubmissionNumber',
        'NVideoEvents',
-       'NForumEvents',
        'NumberOfPosts',
        'NumberOfComments',
-       'ScoreRelevantEvents',
        'SeenVideo',
        'NumberOfDownloads',
        'NumberOfPauses',
@@ -97,9 +105,10 @@ library(caret)
        'NumberOfPlays',
        'NVideoAndForum_',
        'SelectiveNumOfEvents',
-       'NumberOfThreadViews',
        'NumberOfSpeedChange')
-  important_fs = c('NVideoEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','DurationOfVideoActivity','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
+  # TRYING KNN
+  #knn_pred <- knn(train = db.train[,fs], test = db.test[,fs], cl = db.train$improved, k=15);ROC_curve_train_knn = roc(knn_pred, db.test$improved); auc(ROC_curve_train_knn)
+
   ctrl_rf= trainControl(method = 'cv', summaryFunction=twoClassSummary ,classProbs = TRUE)
   # -- Random Forest Model
   model_rf =train(x=db.train[,fs],
@@ -157,13 +166,15 @@ varImp(model_rf)
 #         step 2.1: Use classifier to predict progress for test data
 #======================================================================== 
   
-  testDb=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
+  testDb=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
   testDb$Grade=NULL; testDb$GradeDiff=NULL;
   testDb[is.na(testDb)]=0
   
   #---- use trained model to predict progress for test data
-  preds_rf = predict(model_rf, newdata=testDb);
+  preds_rf = predict(model_rf, newdata=testDb[,fs]);
+  #knn_pred <- knn(train = db.train[,fs], test = testDb[,fs], cl = db.train$improved, k=5)
   
+
 #======================================================================== 
 #         step 2.2: prepare submission file for kaggle
 #======================================================================== 
@@ -177,13 +188,50 @@ varImp(model_rf)
   
   #----- keep only rows which are listed in classifier_templtae.csv file
   #----- this excludes first submissions and cases with no forum and video event in between two submissions
-  classifier_template= read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
+  classifier_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
   kaggleSubmission=merge(classifier_template,cl.Results )
-  write.csv(kaggleSubmission,file='/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_results_rf.csv', row.names = F)
+  write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_results.csv', row.names = F)
   
   
   #------- submit the resulting file (classifier_results.csv) to kaggle 
   #------- report AUC in private score in your report
   
+  
+  fs=c('SubmissionNumber',
+       'NVideoEvents',
+       'NumberOfPosts',
+       'NumberOfComments',
+       'SeenVideo',
+       'NumberOfDownloads',
+       'NumberOfPauses',
+       'DurationOfVideoActivity',
+       'AverageVideoTimeDiffs',
+       'DistinctIds',
+       'PlaysDownlsPerVideo',
+       'ComAndPost',
+       'NumberOfThreadsLaunched',
+       'NumberOfLoads',
+       'NumberOfPlays',
+       'NVideoAndForum_',
+       'SelectiveNumOfEvents',
+       'NumberOfSpeedChange')
+  
+  set.seed(7)
+  # load the library
+  library(mlbench)
+  library(caret)
+  # define the control using a random forest selection function
+  control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+  # run the RFE algorithm
+  results <- rfe(db.train[,fs], db.train$improved, sizes=c(1:18), rfeControl=control)
+  # summarize the results
+  print(results)
+  # list the chosen features
+  predictors(results)
+  
+  # plot the results
+  plot(results, type=c("g", "o"))
+  # plot the results
+  plot(results, type=c("g", "o"))
   
   
