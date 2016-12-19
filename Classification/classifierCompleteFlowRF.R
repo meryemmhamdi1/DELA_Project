@@ -9,7 +9,7 @@ library(class)
 #======================================================================== 
 
   #------ read features extracted from train set, using your python script
-  db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
+  db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
   
   #------ sort submissions
   db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
@@ -49,7 +49,7 @@ library(class)
   #         Print correlation
   #========================================================================   
   
-  #correlationMatrix <- cor(db.train[,5:28])
+  #correlationMatrix <- cor(db.train[,1:35])
   # summarize the correlation matrix
   #print(correlationMatrix)
   # find attributes that are highly corrected (ideally >0.75)
@@ -66,11 +66,6 @@ library(class)
   # ------------ mtry: number of variables randomly sampled as candidates at each split
   # ------------ 
   # ----- Whole Feature Set:
-  # 'ProblemID','UserID','SubmissionNumber','TimeStamp','TimeSinceLast'
-  # 'NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts'
-  # 'NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews'
-  # 'DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs'
-  
   customRF <- list(type = "Classification", library = "randomForest", loop = NULL)
   customRF$parameters <- data.frame(parameter = c("mtry", "ntree"), class = rep("numeric", 2), label = c("mtry", "ntree"))
   customRF$grid <- function(x, y, len = NULL, search = "grid") {}
@@ -88,24 +83,41 @@ library(class)
 
   # removed features: 'NForumEvents', 'ScoreRelevantEvents', 'NumberOfThreadViews', 'TimeSinceLast'
   
-  fs=c('SubmissionNumber',
-       'NVideoEvents',
-       'NumberOfPosts',
-       'NumberOfComments',
-       'SeenVideo',
-       'NumberOfDownloads',
-       'NumberOfPauses',
-       'DurationOfVideoActivity',
-       'AverageVideoTimeDiffs',
-       'DistinctIds',
-       'PlaysDownlsPerVideo',
-       'ComAndPost',
-       'NumberOfThreadsLaunched',
-       'NumberOfLoads',
-       'NumberOfPlays',
-       'NVideoAndForum_',
-       'SelectiveNumOfEvents',
-       'NumberOfSpeedChange')
+  fs=c('SeenVideo',
+        'NVideoAndForum_',
+        'IsLastSubm',
+        'NumberOfThreadsLaunched',
+        'SubmissionNumber',
+        'TotalTimeVideo',
+       'PlaysTimesThreadViews',
+       'EngagementIndex'
+      )
+  #fs=c(
+   # 'DurationOfVideoActivity',
+  #  'AverageVideoTimeDiffs',
+   # 'NumberOfPlays',
+  #  'NumberOfDownloads',
+  #  'NumberOfPauses',
+  #  'SeenVideo',
+   # 'DistinctIds',
+   # 'PlaysDownlsPerVideo',
+   # 'NumberOfLoads',
+   # 'NumberOfSpeedChange',
+   # 'SelectiveNumOfEvents',
+   # 'NVideoAndForum_',
+   # 'TotalVideoEvents',
+   # 'IsLastSubm',
+   # 'TotalTimeVideo',
+   # 'NumberOfThreadViews',
+   # 'NumberOfComments',
+   # 'NumberOfPosts',
+   # 'ScoreRelevantEvents',
+   # 'ComAndPost',
+   # 'NumberOfThreadsLaunched',
+   # 'TotalForumEvents',
+   # 'EngagementIndex',
+   # 'SubmissionNumber'
+  #)
   # TRYING KNN
   #knn_pred <- knn(train = db.train[,fs], test = db.test[,fs], cl = db.train$improved, k=15);ROC_curve_train_knn = roc(knn_pred, db.test$improved); auc(ROC_curve_train_knn)
 
@@ -135,7 +147,31 @@ library(class)
 #======================================================================== 
   table(preds_train_rf,db.train$improved)
   table(preds_test_rf,db.test$improved)
+#========================================================================
+#       powerset of features
+#========================================================================
+  powerset = function(s){
+    len = length(s)
+    l = vector(mode="list",length=2^len) ; l[[1]]=numeric()
+    n=vector(mode="list",length=21);n[[1]]=numeric()
+    counter = 1L
+    i = 1L
+    for(x in 1L:length(s)){
+      for(subset in 1L:counter){
+        counter=counter+1L
+        bla=c(l[[subset]],s[x])
+        if(length(bla)==5){
+          i = i + 1L
+          n[[i]] = bla
+        }
+      }
+    }
+    return(n)
+  }  
+#powerset(fs)
+#newV <- mapply(function(X) { if (length(X)>5) X}, powerset(fs))
   
+#print (powerset(fs))
 #======================================================================== 
 #         step 1.3: Plot Feature/Variable Importance
 #======================================================================== 
@@ -166,7 +202,7 @@ varImp(model_rf)
 #         step 2.1: Use classifier to predict progress for test data
 #======================================================================== 
   
-  testDb=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
+  testDb=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTest.csv', stringsAsFactors = F)
   testDb$Grade=NULL; testDb$GradeDiff=NULL;
   testDb[is.na(testDb)]=0
   
@@ -188,9 +224,9 @@ varImp(model_rf)
   
   #----- keep only rows which are listed in classifier_templtae.csv file
   #----- this excludes first submissions and cases with no forum and video event in between two submissions
-  classifier_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
+  classifier_template= read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
   kaggleSubmission=merge(classifier_template,cl.Results )
-  write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_results.csv', row.names = F)
+  write.csv(kaggleSubmission,file='/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_results.csv', row.names = F)
   
   
   #------- submit the resulting file (classifier_results.csv) to kaggle 
@@ -204,8 +240,6 @@ varImp(model_rf)
        'SeenVideo',
        'NumberOfDownloads',
        'NumberOfPauses',
-       'DurationOfVideoActivity',
-       'AverageVideoTimeDiffs',
        'DistinctIds',
        'PlaysDownlsPerVideo',
        'ComAndPost',
@@ -214,24 +248,25 @@ varImp(model_rf)
        'NumberOfPlays',
        'NVideoAndForum_',
        'SelectiveNumOfEvents',
-       'NumberOfSpeedChange')
+       'NumberOfSpeedChange',
+       'IsLastSubm')
   
-  set.seed(7)
+  #set.seed(7)
   # load the library
   library(mlbench)
   library(caret)
   # define the control using a random forest selection function
-  control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+  #control <- rfeControl(functions=rfFuncs, method="cv", number=10)
   # run the RFE algorithm
-  results <- rfe(db.train[,fs], db.train$improved, sizes=c(1:18), rfeControl=control)
+  #results <- rfe(db.train[,fs], db.train$improved, sizes=c(1:18), rfeControl=control)
   # summarize the results
-  print(results)
+  #print(results)
   # list the chosen features
-  predictors(results)
+  #predictors(results)
   
   # plot the results
-  plot(results, type=c("g", "o"))
+  #plot(results, type=c("g", "o"))
   # plot the results
-  plot(results, type=c("g", "o"))
+  #plot(results, type=c("g", "o"))
   
   

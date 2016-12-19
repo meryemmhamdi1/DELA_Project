@@ -151,16 +151,16 @@ def AppendFeatures(DataSet):
                     # Calculate features for video events
                     if NVideoEvents > 0 and NForumEvents == 0:
                         Features = CalculateFeatures(
-                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],ForumEvents=[],NVideoAndForum_=NVideoEvents)
+                            VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],ForumEvents=[],NVideoAndForum_=NVideoEvents,subms=[DataSet[ProblemID][UserID].keys(),SubmissionNumber])
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents == 0 and NForumEvents > 0:
                         Features = CalculateFeatures(VideoEvents=[],
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NForumEvents)
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NForumEvents,subms=[DataSet[ProblemID][UserID].keys(),SubmissionNumber])
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
                     elif NVideoEvents > 0 and NForumEvents > 0:
                         Features = CalculateFeatures(
                             VideoEvents=DataSet[ProblemID][UserID][SubmissionNumber]['VideoEvents'],
-                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NVideoAndForum)
+                            ForumEvents=DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents'],NVideoAndForum_=NVideoAndForum,subms=[DataSet[ProblemID][UserID].keys(),SubmissionNumber])
                         DataSet[ProblemID][UserID][SubmissionNumber]['Features'].update(Features)
 
     return DataSet
@@ -242,7 +242,7 @@ def ExportAsCSV(DataSet):
     ColumnNames += ListOfFeatureNames
 
     # Print sample of output table
-    print (tabulate(Table[0:160], headers=ColumnNames, tablefmt="fancy_grid"))
+    #print (tabulate(Table[0:160], headers=ColumnNames, tablefmt="fancy_grid"))
     print ('(this is a sample of the output table)\n')
 
     # Save table into CSV file

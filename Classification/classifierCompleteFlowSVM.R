@@ -35,8 +35,14 @@ table(db$improved)
 # 'NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews'
 # 'DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs'
 
-fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs')
-
+#fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs')
+fs=c('SeenVideo',
+     'NVideoAndForum_',
+     'IsLastSubm',
+     'NumberOfThreadsLaunched',
+     'SubmissionNumber',
+     'TotalTimeVideo'
+)
 # Normalization of features:
 scalar1 <- function(x) {(x-min(x))/(max(x)-min(x))}
 for (feature in fs){

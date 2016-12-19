@@ -1,13 +1,14 @@
 # ----------------------------------------#
 # Function that computes custom features #
 # ----------------------------------------#
-def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
+def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0,subms=[0,0]):
     # Initialize features dict
     Features = {}
    # NVideoAndForum_=len(VideoEvents)+len(ForumEvents)
     # Features for video events
 
     TotalVideoEvents = 0
+    NumberOfPlays=0
     if len(VideoEvents) > 0:
 
         # Calculate custom features
@@ -50,8 +51,17 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
         # [NEW] ADDED NEW FEATURE: PLAYS AND DOWNLOADS PER VIDEO
         SelectiveNumOfEvents=NumberOfPlays+NumberOfPauses+NumberOfLoads+NumberOfSpeedChange
 
-
-
+        # [NEW] IS LAST SUBMISSION
+        if list(subms[0]):
+          if list(subms[0])[-1] ==subms[1]:
+            IsLastSubm=1
+          else: IsLastSubm=0
+        else:
+          IsLastSubm=1
+        
+        TotalTimeVideo=DurationOfVideoActivity*DistinctIds
+        
+        sumbNumTimesNumVidForum=subms[1]*NVideoAndForum_
         # Append features to dictionary
         Features.update({
             'DurationOfVideoActivity': DurationOfVideoActivity,
@@ -66,7 +76,10 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
             'NumberOfSpeedChange': NumberOfSpeedChange,
             'SelectiveNumOfEvents': SelectiveNumOfEvents,
             'NVideoAndForum_': NVideoAndForum_,
-            'TotalVideoEvents': TotalVideoEvents
+            'TotalVideoEvents': TotalVideoEvents,
+            'IsLastSubm':IsLastSubm,
+            'TotalTimeVideo':TotalTimeVideo,
+            'sumbNumTimesNumVidForum':sumbNumTimesNumVidForum
         })
 
     # Features for forum events
@@ -95,7 +108,10 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
         TotalForumEvents = NumberOfThreadsLaunched + NumberOfPosts
 
         EngagementIndex = TotalVideoEvents * TotalForumEvents
+        
+        LaunchedTimesViews=NumberOfThreadsLaunched*NumberOfThreadViews
 
+        PlaysTimesThreadViews=NumberOfPlays*NumberOfThreadViews
         # Append features to dictionary
         Features.update({
             'NumberOfThreadViews': NumberOfThreadViews,
@@ -105,7 +121,9 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0):
             'ComAndPost':ComAndPost,
             'NumberOfThreadsLaunched': NumberOfThreadsLaunched,
             'TotalForumEvents': TotalForumEvents,
-            'EngagementIndex': EngagementIndex
+            'EngagementIndex': EngagementIndex,
+            'LaunchedTimesViews':LaunchedTimesViews,
+            'PlaysTimesThreadViews':PlaysTimesThreadViews
         })
 
     return Features

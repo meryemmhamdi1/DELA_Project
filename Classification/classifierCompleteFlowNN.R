@@ -9,7 +9,7 @@ library(nnet)
 #======================================================================== 
 
 #------ read features extracted from train set, using your python script
-db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
+db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/OutputTableTrain.csv', stringsAsFactors = F)
 
 #------ sort submissions
 db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
@@ -51,27 +51,13 @@ dim(db.test)
 # 'DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs'
 
 #fs=c('TimeSinceLast','NVideoEvents','NForumEvents','NumberOfPlays','NumberOfPosts','NumberOfComments','SeenVideo','NumberOfDownloads','NumberOfPauses','NumberOfThreadViews','DurationOfVideoActivity','ScoreRelevantEvents','AverageVideoTimeDiffs','DistinctIds', 'PlaysDownlsPerVideo','ComAndPost','NumberOfThreadsLaunched')
-fs=c('SubmissionNumber',
-     'NVideoEvents',
-     'NForumEvents',
-     'NumberOfPosts',
-     'NumberOfComments',
-     'ScoreRelevantEvents',
-     'SeenVideo',
-     'NumberOfDownloads',
-     'NumberOfPauses',
-     'DurationOfVideoActivity',
-     'AverageVideoTimeDiffs',
-     'DistinctIds',
-     'PlaysDownlsPerVideo',
-     'ComAndPost',
-     'NumberOfThreadsLaunched',
-     'NumberOfLoads',
-     'NumberOfPlays',
+fs=c('SeenVideo',
      'NVideoAndForum_',
-     'SelectiveNumOfEvents',
-     'NumberOfThreadViews',
-     'NumberOfSpeedChange')
+     'IsLastSubm',
+     'NumberOfThreadsLaunched',
+     'SubmissionNumber',
+     'TotalTimeVideo'
+)
 idC <-class.ind(db.train$improved)
 nn_model = nnet(db.train[,fs],idC, size=10, maxit = 200, softmax=TRUE)
 
@@ -116,9 +102,9 @@ table(cl.Results$improved)
 
 #----- keep only rows which are listed in classifier_templtae.csv file
 #----- this excludes first submissions and cases with no forum and video event in between two submissions
-classifier_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
+classifier_template= read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_template.csv', stringsAsFactors = F)
 kaggleSubmission=merge(classifier_template,cl.Results )
-write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Classification/classifier_results_nn.csv', row.names = F)
+write.csv(kaggleSubmission,file='/home/nevena/Desktop/Digital education/DELA_Project/Classification/classifier_results_nn.csv', row.names = F)
 
 
 #------- submit the resulting file (classifier_results.csv) to kaggle 
