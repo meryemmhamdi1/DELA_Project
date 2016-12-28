@@ -31,43 +31,32 @@ def indent(text, prefix, predicate=None):
 '''def PrintDataSet(DataSet):
     # Initialize effective row counter (rows that have custom features)
     EffectiveRowCounter = 0
-
     # Loop through all problems
     for ProblemID in DataSet.keys():
-
         # Print ProblemID with a small pause
         print colored('\n' + '-' * 32 + '\n\tProblem Number ' + str(ProblemID) + '\n' + '-' * 32, 'red')
         time.sleep(1)
-
         # Loop through all students
         for UserID in DataSet[ProblemID].keys():
-
             # Print UserID
             print colored('\n' + '-' * 52 + '\nStudent ID: ' + UserID + '\n' + '-' * 52, 'magenta')
-
             # Loop through all problem (re-)submissions
             for SubmissionNumber in DataSet[ProblemID][UserID].keys():
-
                 # Print submission number
                 print colored('\n\t' + '-' * 20 + '\n\tSubmission Number ' + str(SubmissionNumber) + '\n\t' + '-' * 20,
                               'blue')
-
                 # Print time stamp
                 print '\t\t TimeStamp      ' + str(DataSet[ProblemID][UserID][SubmissionNumber]['TimeStamp'])
                 if SubmissionNumber > 0:
                     print '\t\t TimeSinceLast  ' + str(DataSet[ProblemID][UserID][SubmissionNumber]['TimeSinceLast'])
-
                 # Print video and forum events since last submission
                 if SubmissionNumber > 0:
-
                     # Get number of video and forum events
                     NVideoEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NVideoEvents']
                     NForumEvents = DataSet[ProblemID][UserID][SubmissionNumber]['NForumEvents']
-
                     # Print number of video and forum events
                     print '\t\t NVideoEvents   ' + str(NVideoEvents)
                     print '\t\t NForumEvents   ' + str(NForumEvents)
-
                     # Print table with video events if they exist
                     if NVideoEvents > 0:
                         print '\n\t\t VideoEvents (since last submission) : '
@@ -84,7 +73,6 @@ def indent(text, prefix, predicate=None):
                                               headers=['TimeStamp', 'EventType', 'VideoID', 'CurrentTime', 'OldTime',
                                                        'NewTime', 'SeekType', 'OldSpeed', 'NewSpeed'], tablefmt="rst"),
                                      prefix='\t\t\t\t')
-
                     # Print table with forum events if they exist
                     if NForumEvents > 0:
                         print '\n\t\t ForumEvents (since last submission) : '
@@ -96,7 +84,6 @@ def indent(text, prefix, predicate=None):
                             DataSet[ProblemID][UserID][SubmissionNumber]['ForumEvents']['PostLength']]),
                                               headers=['TimeStamp', 'EventType', 'PostType', 'PostID', 'PostLength'],
                                               tablefmt="rst"), prefix='\t\t\t\t')
-
                 # Print extra features
                 if SubmissionNumber > 0:
                     # Get feature names
@@ -109,7 +96,6 @@ def indent(text, prefix, predicate=None):
                         for FeatureName in FeatureNames:
                             print colored('\t\t\t\t%s : %d' % (
                             FeatureName, DataSet[ProblemID][UserID][SubmissionNumber]['Features'][FeatureName]), 'cyan')
-
                 # Print (re-)submission grade and grade difference
                 print '\n\t\t Grade          ' + str(DataSet[ProblemID][UserID][SubmissionNumber]['Grade'])
                 if SubmissionNumber > 0:
@@ -121,7 +107,6 @@ def indent(text, prefix, predicate=None):
                     else:
                         GradeDiffColor = 'grey'
                     print colored('\t\t GradeDiff      ' + str(GradeDiff), GradeDiffColor)
-
     # Print end of dataset notice, and number of effective rows
     print '\nEnd of data set. Number of rows with custom features is %d.\n' % EffectiveRowCounter
 '''
@@ -273,7 +258,7 @@ with open(FilePath, 'rb') as handle:
 DataSet = AppendFeatures(DataSet)
 
 # Pretty-print updated data ser
-#PrintDataSet(DataSet)
+# PrintDataSet(DataSet)
 
 # Key press pause
 os.system('read -s -n 1 -p "Data set will now be saved to CSV file. Press any key to continue..." | echo ""')

@@ -1,3 +1,4 @@
+
 # ----------------------------------------#
 # Function that computes custom features #
 # ----------------------------------------#
@@ -102,15 +103,19 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0,subms=[0,
         #[NEW] ADDED NEW FEATURE: COUNT ONLY POSTS AND COMMENTS
         ComAndPost=NumberOfComments+NumberOfPosts
         
-        #[NEW] ADDED NEW FEATURE: COUNT ONLY POSTS AND COMMENTS
+        #[NEW] ADDED NEW FEATURE: COUNT NUMBER OF THREADS LAUNCHED
         NumberOfThreadsLaunched = EventTypes.count('Forum.Thread.Launch')
 
+	#[NEW] ADDED NEW FEATURE: COUNT TOTAL NUMBER OF THREADS AND POSTS 
         TotalForumEvents = NumberOfThreadsLaunched + NumberOfPosts
 
+	#[NEW] ADDED NEW FEATURE: INTERACTION BETWEEN VIDEO AND FORUM EVENTS
         EngagementIndex = TotalVideoEvents * TotalForumEvents
         
+	#[NEW] ADDED NEW FEATURE: INTERACTION BETWEEN NUMBER OF THREADS LAUNCHED AND THREAD VIEWS
         LaunchedTimesViews=NumberOfThreadsLaunched*NumberOfThreadViews
 
+	#[NEW] ADDED NEW FEATURE: INTERACTION BETWEEN NUMBER OF PLAYS AND THREAD VIEWS
         PlaysTimesThreadViews=NumberOfPlays*NumberOfThreadViews
         # Append features to dictionary
         Features.update({
@@ -126,4 +131,4 @@ def CalculateFeatures(VideoEvents=[], ForumEvents=[],NVideoAndForum_=0,subms=[0,
             'PlaysTimesThreadViews':PlaysTimesThreadViews
         })
 
-    return Features
+	return Features

@@ -275,7 +275,7 @@ with open(FilePath, 'rb') as handle:
 DataSet = AppendFeatures(DataSet)
 
 # Pretty-print updated data ser
-#PrintDataSet(DataSet)
+PrintDataSet(DataSet)
 
 # Key press pause
 os.system('read -s -n 1 -p "Data set will now be saved to CSV file. Press any key to continue..." | echo ""')
