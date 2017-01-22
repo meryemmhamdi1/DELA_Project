@@ -7,10 +7,11 @@ library(caret)
 #======================================================================== 
 
 #------ read features extracted from train set, using your python script
-db=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Regression/RawAndFeatureData/OutputTableTrain.csv', stringsAsFactors = F)
+db=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Regression/RawAndFeatureData/OutputTableTrain.csv', stringsAsFactors = F)
 
 #------ sort submissions
 db=db[order(db$UserID,db$ProblemID,db$SubmissionNumber),]
+
 db$TotalTimeVideo = db$DurationOfVideoActivity*db$DistinctIds
 
 #--- replace NA values with 0
@@ -37,10 +38,14 @@ db= filter(db,NVideoAndForum>0)
 # submissionFrame <- data.frame(problemID,userID,submissionNumber,grades)
 # submissionNumberagg <- ddply(submissionFrame, .(problemID,userID), summarize, V2 = sum(submissionNumber), V3 = length(submissionNumber),gradeDiff = grades[V3]-grades[1])
 
-db_agg <- ddply(db, .(ProblemID, UserID), summarize, SeenVideoAgg = sum(SeenVideo),
-                NVideoAndForum_Sum = sum(NVideoAndForum_),NumberOfThreadsLaunchedSum = sum(NumberOfThreadsLaunched),
-                SubmissionNumberLen = length(SubmissionNumber), TotalTimeVideoSum =sum(TotalTimeVideo),
-                EngagementIndexSum = sum(EngagementIndex), gradeDiff = Grade[SubmissionNumberLen]-Grade[1]  )
+db_agg <- ddply(db, .(ProblemID, UserID), summarize, 
+                NVideoAndForum_=sum(NVideoAndForum_),
+                #NumberOfThreadsLaunchedSum = sum(NumberOfThreadsLaunched),
+                SubmissionNumberLen = length(SubmissionNumber),
+                #DistIds=sum(DistinctIds),
+                #SeenVideoSum=sum(SeenVideo),
+                #TotalTimeSum=sum(TotalTimeVideo),
+                gradeDiff = Grade[SubmissionNumberLen]-Grade[1] )
 
 #====================================================================================================== 
 #         step 2.1: Applying Regression Algorithms to predict grade difference 
@@ -48,9 +53,9 @@ db_agg <- ddply(db, .(ProblemID, UserID), summarize, SeenVideoAgg = sum(SeenVide
 
 # Visualizing the distribution of grades of students 
 hist(db_agg$gradeDiff)
-
+hist(db_agg$avgGrade)
 # Upsample the students with better grades since we have many problems/students for which grade didn't improve that much
-fs = c("SeenVideoAgg","NVideoAndForum_Sum","NumberOfThreadsLaunchedSum","SubmissionNumberLen","TotalTimeVideoSum","EngagementIndexSum","gradeDiff")
+fs = c("NVideoAndForum_","SubmissionNumberLen") #,"AverageNForumEventsMean")
 
 ## Define categories of grade improvement for upsampling purposes
 #db_agg$GradeCategory =  factor(ifelse(db_agg$GradeCategory<-50 ,"Category4", "Other" ))
@@ -71,25 +76,45 @@ dim(db_agg.test)
 #======================================================================== 
 #         Trying svmLinear
 #======================================================================== 
-
-train_fs = c("SeenVideoAgg","NVideoAndForum_Sum","NumberOfThreadsLaunchedSum","SubmissionNumberLen","TotalTimeVideoSum","EngagementIndexSum") #,"AverageNForumEventsMean")
+RMSE = function(Y,Yhat){ sqrt(mean((Y - Yhat)^2)) }
+train_fs = c("NVideoAndForum_","SubmissionNumberLen") #,"AverageNForumEventsMean")
 ctrl <- trainControl(## 10-fold CV
   method = "repeatedcv",
-  number = 10,
+  number = 5,
   ## repeated ten times
-  repeats = 10,
+  repeats = 5,
   classProbs = FALSE)
 paramGrid <- expand.grid(C = c(0.001,0.01,0.1,0.5 ,1, 2, 3, 4))
 # svmLinear gives 50,73696
-svm3=train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "svmLinear"
-           , trControl = ctrl,tuneGrid = paramGrid, preProc = c("center", "scale"))
+svm.tune <- train(x=db_agg.train[,train_fs],
+                  y= db_agg.train$gradeDiff,
+                  method = "svmRadial",   # Radial kernel
+                  tuneLength = 9,					# 9 values of the cost function
+                  preProc = c("center","scale"),  # Center and scale data
+                  trControl=ctrl,
+                  parameters=paramGrid)
+svm.tune2 <- train(x=db_agg.train[,train_fs],
+                   y= db_agg.train$gradeDiff,
+                   method = "svmLinear",
+                   preProc = c("center","scale"),
+                   trControl=ctrl)	
+svm.tune3 <- train(x=db_agg.train[,train_fs],
+                   y= db_agg.train$gradeDiff,
+                   method = "svmPoly",
+                   preProc = c("center","scale"),
+                   trControl=ctrl)	
+svm.tune4 <- train(x=db_agg.train[,train_fs],
+                   y= db_agg.train$gradeDiff,
+                   method = "svmRadialCost",
+                   preProc = c("center","scale"),
+                   trControl=ctrl)	
 
 # Predict and Calculate RMSE for train dataset
-pred_train=predict(svm3, newdata=db_agg.train[,train_fs])
+pred_train=predict(svm.tune, newdata=db_agg.train[,train_fs])
 (RMSE(db_agg.train$gradeDiff, pred_train))
 
 # Predict and Calculate RMSE for test dataset
-pred_test=predict(svm3, newdata=db_agg.test[,train_fs])
+pred_test=predict(svm.tune, newdata=db_agg.test[,train_fs])
 (RMSE(db_agg.test$gradeDiff, pred_test))
 
 #======================================================================== 
@@ -98,7 +123,7 @@ pred_test=predict(svm3, newdata=db_agg.test[,train_fs])
 
 # lmStepAIC without pre-processing or fine tuning: 47,76091 
 cm4 <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "lmStepAIC",trControl = ctrl, preProc = c("center", "scale")) 
-summary(cm4)$r.squared
+#summary(cm4)$r.squared
 
 # Define RMSE
 RMSE = function(Y,Yhat){ sqrt(mean((Y - Yhat)^2)) }
@@ -114,20 +139,54 @@ pred_test=predict(cm4, newdata=db_agg.test[,train_fs])
 #======================================================================== 
 #         Trying gbm
 #========================================================================
+  
+  # gbm gives 38,90521 even improved with pre-processing to reach 38.67384
+  paramGrid <- expand.grid(n.trees = c(50:100),interaction.depth=c(2,5,10,20,40),shrinkage=c(4,5),n.minobsinnode=c(1,2,3))
+  set.seed(2014)
+  
+  gbm <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "gbm", trControl = ctrl, tuneLength=6)
+  
+  # Predict and Calculate RMSE for train dataset
+  pred_train=predict(gbm, newdata=db_agg.train[,train_fs])
+  (RMSE(db_agg.train$gradeDiff, pred_train))
+  
+  # Predict and Calculate RMSE for test dataset
+  pred_test=predict(gbm, newdata=db_agg.test[,train_fs])
+  (RMSE(db_agg.test$gradeDiff, pred_test))
+#======================================================================== 
+#         Trying cart
+#========================================================================
 
-# gbm gives 38,90521 even improved with pre-processing to reach 38.67384
-paramGrid <- expand.grid(n.trees = c(50:100),interaction.depth=c(2,5,10,20),shrinkage=c(4,5),n.minobsinnode=c(1,2,3))
+cartModel <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff,method = "rpart", trControl = fitControl, tuneLength=5)
 
-gbm <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "gbm",preProc = c("center", "scale"))
-             #,trControl = ctrl,tuneGrid = paramGrid) 
-summary(gbm)$r.squared
-
-# Predict and Calculate RMSE for train dataset
-pred_train=predict(gbm, newdata=db_agg.train[,train_fs])
+pred_train=predict(cartModel, newdata=db_agg.train[,train_fs])
 (RMSE(db_agg.train$gradeDiff, pred_train))
 
 # Predict and Calculate RMSE for test dataset
-pred_test=predict(gbm, newdata=db_agg.test[,train_fs])
+pred_test=predict(cartModel, newdata=db_agg.test[,train_fs])
+(RMSE(db_agg.test$gradeDiff, pred_test))
+
+#======================================================================== 
+#         Trying earth
+#========================================================================
+earthModel <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "earth", trControl = fitControl, tuneLength=18)
+
+pred_train=predict(earthModel, newdata=db_agg.train[,train_fs])
+(RMSE(db_agg.train$gradeDiff, pred_train))
+
+# Predict and Calculate RMSE for test dataset
+pred_test=predict(earthModel, newdata=db_agg.test[,train_fs])
+(RMSE(db_agg.test$gradeDiff, pred_test))
+#======================================================================== 
+#         Trying Conditional Inference Tree
+#========================================================================
+eNetModel <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "ctree", trControl = ctrl, tuneLength=8)
+
+pred_train=predict(eNetModel, newdata=db_agg.train[,train_fs])
+(RMSE(db_agg.train$gradeDiff, pred_train))
+
+# Predict and Calculate RMSE for test dataset
+pred_test=predict(eNetModel, newdata=db_agg.test[,train_fs])
 (RMSE(db_agg.test$gradeDiff, pred_test))
 
 #======================================================================== 
@@ -138,7 +197,7 @@ pred_test=predict(gbm, newdata=db_agg.test[,train_fs])
 paramGrid <- expand.grid(mtry= c(1:9))
 
 rf <- train(x=db_agg.train[,train_fs] , y=db_agg.train$gradeDiff, method = "rf",trControl = ctrl,tuneGrid = paramGrid, preProc = c("center", "scale")) 
-summary(rf)
+#summary(rf)
 
 # Predict and Calculate RMSE for train dataset
 pred_train=predict(rf, newdata=db_agg.train[,train_fs])
@@ -152,14 +211,16 @@ pred_test=predict(rf, newdata=db_agg.test[,train_fs])
 #======================================================================== 
 #         step 3.1: Use Regressor to predict progress for test data
 #======================================================================== 
-testDb=read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Regression/RawAndFeatureData/OutputTableTest.csv', stringsAsFactors = F)
+testDb=read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Regression/RawAndFeatureData/OutputTableTest.csv', stringsAsFactors = F)
 
 # NEW FEATURES 
-testDb$TotalTimeVideo = testDb$DurationOfVideoActivity*testDb$DistinctIds
-db_test_agg <- ddply(testDb, .(ProblemID, UserID), summarize, SeenVideoAgg = sum(SeenVideo),
-                NVideoAndForum_Sum = sum(NVideoAndForum_),NumberOfThreadsLaunchedSum = sum(NumberOfThreadsLaunched),
-                SubmissionNumberLen = length(SubmissionNumber), TotalTimeVideoSum =sum(TotalTimeVideo),
-                EngagementIndexSum = sum(EngagementIndex))
+
+db_test_agg <- ddply(testDb, .(ProblemID, UserID), summarize, 
+                     #SeenVideoAgg = sum(SeenVideo),
+                     NVideoAndForum_=sum(NVideoAndForum_),
+                     SubmissionNumberLen = length(SubmissionNumber),
+                     gradeDiff = Grade[SubmissionNumberLen]-Grade[1]  )
+
 
 
 testDb$Grade=NULL; testDb$GradeDiff=NULL;
@@ -167,7 +228,7 @@ testDb$Grade=NULL; testDb$GradeDiff=NULL;
 db_test_agg[is.na(db_test_agg)]=0
 
 #---- use trained model to predict progress for test data
-pred_lm=predict(rf, newdata=db_test_agg[,train_fs])
+pred_lm=predict(gbm, newdata=db_test_agg[,train_fs])
 
 
 #======================================================================== 
@@ -175,13 +236,13 @@ pred_lm=predict(rf, newdata=db_test_agg[,train_fs])
 #======================================================================== 
 
 cl.Results=db_test_agg[,c('ProblemID', 'UserID')]
-cl.Results$overalGradeDiff= pred_lm 
+cl.Results$overalGradeDiff= pred_lm
 cl.Results$uniqRowID= paste0(cl.Results$UserID,'_', cl.Results$ProblemID)
 cl.Results=cl.Results[,c('uniqRowID','overalGradeDiff')]
 
 #----- keep only rows which are listed in regression_template.csv file
 #----- this excludes first submissions and cases with no forum and video event in between two submissions
-regression_template= read.csv('/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Regression/regression_template.csv', stringsAsFactors = F)
+regression_template= read.csv('/home/nevena/Desktop/Digital education/DELA_Project/Regression/regression_template.csv', stringsAsFactors = F)
 kaggleSubmission=merge(regression_template,cl.Results )
-write.csv(kaggleSubmission,file='/media/diskD/EPFL/Fall 2016/DELA/DELA_Project/Regression/Results/regression_results_rf.csv', row.names = F)
+write.csv(kaggleSubmission,file='/home/nevena/Desktop/Digital education/DELA_Project/Regression/Results/regression_results_gbm.csv', row.names = F)
 
